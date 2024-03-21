@@ -1,0 +1,21 @@
+﻿@model List<Auctions.Models.Listing>
+
+
+
+<h1>Active Listing</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+@foreach(var list in Model)
+{
+ <div>Hey hi</div>   
+}
+
+@if (!Model.Any())
+{
+ <p>Done</p>   
+}
+
+
+
