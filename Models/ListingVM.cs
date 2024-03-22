@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
-using Microsoft.AspNetCore.Identity;
 
 namespace Auctions.Models
 {
-    public class Listing
+    public class ListingVM
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -14,7 +13,7 @@ namespace Auctions.Models
 
         public double Price { get; set; }
 
-        public string ImagePath { get; set; }
+        public IFormFile Image { get; set; }
 
         public bool IsSold { get; set; } = false;
 
@@ -23,11 +22,6 @@ namespace Auctions.Models
 
         [ForeignKey("IdentityUserId")]
         public IdentityUser? User { get; set; }
-
-        public List<Bid>? Bids { get; set; }
-
-        public List<Comment>? Comments {  get; set; } 
-
 
     }
 }

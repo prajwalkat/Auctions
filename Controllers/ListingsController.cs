@@ -14,9 +14,11 @@ namespace Auctions.Controllers
     public class ListingsController : Controller
     {
         private readonly IListingService _listingService;
-        public ListingsController(IListingService listingService)
+        private readonly IWebHostEnvironment _webHostEnviorment;
+        public ListingsController(IListingService listingService, IWebHostEnvironment webHostEnviorment)
         {
             _listingService = listingService;
+            _webHostEnviorment = webHostEnviorment;
         }
 
         // GET: Listings
@@ -28,48 +30,63 @@ namespace Auctions.Controllers
 
 
 
-        // GET: Listings/Details/5
-        //public async Task<IActionResult> Details(int? id)
-        //{
-        //    if (id == null || _context.Listings == null)
-        //    {
-        //        return NotFound();
-        //    }
+        //GET: Listings/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //    var listing = await _context.Listings
-        //        .Include(l => l.User)
-        //        .FirstOrDefaultAsync(m => m.Id == id);
-        //    if (listing == null)
-        //    {
-        //        return NotFound();
-        //    }
+            var listing = await _listingService.GetById(id);
+            if (listing == null)
+            {
+                return NotFound();
+            }
 
-        //    return View(listing);
-        //}
+            return View(listing);
+        }
 
-        //// GET: Listings/Create
-        //public IActionResult Create()
-        //{
-        //    ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
-        //    return View();
-        //}
+        // GET: Listings/Create
+        public IActionResult Create()
+        {
+            //ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
+            return View();
+        }
 
-        //// POST: Listings/Create
-        //// To protect from overposting attacks, enable the specific properties you want to bind to.
-        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("Id,Title,Description,Price,ImagePath,IsSold,IdentityUserId")] Listing listing)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        _context.Add(listing);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", listing.IdentityUserId);
-        //    return View(listing);
-        //}
+        //POST: Listings/Create
+        //To protect from overposting attacks, enable the specific properties you want to bind to.
+        //For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
+       [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ListingVM listing)
+        {
+            if (listing.Image!=null)
+            {
+                string uploadDir = Path.Combine(_webHostEnviorment.WebRootPath,"Images");
+                string fileName = listing.Image.FileName;
+                string filePath= Path.Combine(uploadDir,fileName);
+
+                using (var fileStream = new FileStream(filePath,FileMode.Create)) 
+                {
+                    listing.Image.CopyTo(fileStream);
+                }
+
+                var listingObj = new Listing
+                {
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    IdentityUserId = listing.IdentityUserId,
+                    ImagePath = fileName
+                };
+                await _listingService.Add(listingObj);
+                return RedirectToAction("Index");
+            }
+            
+            return View(listing);
+        }
 
         //// GET: Listings/Edit/5
         //public async Task<IActionResult> Edit(int? id)
@@ -157,7 +174,7 @@ namespace Auctions.Controllers
         //    {
         //        _context.Listings.Remove(listing);
         //    }
-            
+
         //    await _context.SaveChangesAsync();
         //    return RedirectToAction(nameof(Index));
         //}
