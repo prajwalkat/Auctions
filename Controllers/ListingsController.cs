@@ -15,15 +15,17 @@ namespace Auctions.Controllers
     public class ListingsController : Controller
     {
         private readonly IListingService _listingService;
+        private readonly IBidService _bidService;
         private readonly IWebHostEnvironment _webHostEnviorment;
-        public ListingsController(IListingService listingService, IWebHostEnvironment webHostEnviorment)
+        public ListingsController(IListingService listingService, IWebHostEnvironment webHostEnviorment, IBidService bidService)
         {
             _listingService = listingService;
             _webHostEnviorment = webHostEnviorment;
+            _bidService= bidService;
         }
 
         // GET: Listings
-        public async Task<IActionResult> Index(int? pageNumber,string searchString)
+        public async Task<IActionResult> Index(int? pageNumber, string searchString)
         {
             var applicationDbContext = _listingService.GetAll();
 
@@ -35,8 +37,8 @@ namespace Auctions.Controllers
                 applicationDbContext = applicationDbContext.Where(a => a.Title.Contains(searchString));
                 return View(await PaginatedList<Listing>.CreateAsync(applicationDbContext.Where(l => l.IsSold == false).AsNoTracking(), pageNumber ?? 1, pageSize));
             }
-            
-            return View(await PaginatedList<Listing>.CreateAsync(applicationDbContext.Where(l=>l.IsSold==false).AsNoTracking(),pageNumber ?? 1 ,pageSize));
+
+            return View(await PaginatedList<Listing>.CreateAsync(applicationDbContext/*.Where(l => l.IsSold == false)*/.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
 
@@ -69,17 +71,17 @@ namespace Auctions.Controllers
         //To protect from overposting attacks, enable the specific properties you want to bind to.
         //For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
 
-       [HttpPost]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ListingVM listing)
         {
-            if (listing.Image!=null)
+            if (listing.Image != null)
             {
-                string uploadDir = Path.Combine(_webHostEnviorment.WebRootPath,"Images");
+                string uploadDir = Path.Combine(_webHostEnviorment.WebRootPath, "Images");
                 string fileName = listing.Image.FileName;
-                string filePath= Path.Combine(uploadDir,fileName);
+                string filePath = Path.Combine(uploadDir, fileName);
 
-                using (var fileStream = new FileStream(filePath,FileMode.Create)) 
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     listing.Image.CopyTo(fileStream);
                 }
@@ -95,9 +97,30 @@ namespace Auctions.Controllers
                 await _listingService.Add(listingObj);
                 return RedirectToAction("Index");
             }
-            
+
             return View(listing);
         }
+
+        [HttpPost]
+        public async Task<ActionResult> AddBid([Bind("Id , Price , ListingId, IdentityUserID")] Bid bid) {
+
+            if (ModelState.IsValid) {
+                await _bidService.Add(bid);
+            }
+            var listing = await _listingService.GetById(bid.ListingId);
+            listing.Price = bid.Price;
+            await _listingService.SaveChanges();
+
+            return View("Details",listing);
+        }
+
+        public async Task<ActionResult> CloseBidding(int id) {
+            var listing = await _listingService.GetById(id);
+            listing.IsSold = true;
+            await _listingService.SaveChanges();
+            return View("Details",listing);
+        }
+
 
         //// GET: Listings/Edit/5
         //public async Task<IActionResult> Edit(int? id)

@@ -9,5 +9,7 @@ namespace Auctions.Data.Services
 
         Task<Listing> GetById(int? id);
 
+        Task SaveChanges();
+
     }
 }

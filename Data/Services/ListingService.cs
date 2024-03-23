@@ -41,5 +41,11 @@ namespace Auctions.Data.Services
 
 
         }
+
+        public async Task SaveChanges()
+        {
+            await _context.SaveChangesAsync();
+
+        }
     }
 }
