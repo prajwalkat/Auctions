@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Auctions.Data;
 using Auctions.Models;
 using Auctions.Data.Services;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Auctions.Controllers
 {
@@ -22,10 +23,20 @@ namespace Auctions.Controllers
         }
 
         // GET: Listings
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? pageNumber,string searchString)
         {
             var applicationDbContext = _listingService.GetAll();
-            return View(await applicationDbContext.ToListAsync());
+
+            //return View(await applicationDbContext.ToListAsync());
+
+            int pageSize = 3;
+
+            if (!string.IsNullOrEmpty(searchString)) {
+                applicationDbContext = applicationDbContext.Where(a => a.Title.Contains(searchString));
+                return View(await PaginatedList<Listing>.CreateAsync(applicationDbContext.Where(l => l.IsSold == false).AsNoTracking(), pageNumber ?? 1, pageSize));
+            }
+            
+            return View(await PaginatedList<Listing>.CreateAsync(applicationDbContext.Where(l=>l.IsSold==false).AsNoTracking(),pageNumber ?? 1 ,pageSize));
         }
 
 

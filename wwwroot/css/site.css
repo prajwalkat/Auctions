@@ -19,4 +19,22 @@ html {
 
 body {
   margin-bottom: 60px;
+  padding:10px;
+  background-color:rgb(229,224,226);
+
+}
+
+.nav {
+    background-color:rgba( 138,129,133,0.6);
+    border: 1px solid black;
+
+}
+
+.nav-link {
+color:black;
+
+}
+
+.nav-link:hover {
+color:white;
 }
