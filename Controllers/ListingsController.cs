@@ -130,7 +130,7 @@ namespace Auctions.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> AddBid([Bind("Id , Price , ListingId, IdentityUserID")] Bid bid) {
+        public async Task<ActionResult> AddBid([Bind("Id , Price , IdentityUserId , ListingId ")] Bid bid) {
 
             if (ModelState.IsValid) {
                 await _bidService.Add(bid);
@@ -151,7 +151,7 @@ namespace Auctions.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> AddComment([Bind("Id , Content , ListingId, IdentityUserID")] Comment comment) {
+        public async Task<ActionResult> AddComment([Bind("Id , Content , IdentityUserId , ListingId")] Comment comment) {
             if (ModelState.IsValid)
             {
                 await _commentService.Add(comment);
